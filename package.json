@@ -14,6 +14,7 @@
     "backup:db": "node scripts/backup.js",
     "restore:db": "node scripts/restore.js",
     "backup:drill": "node scripts/restore-drill.js"
+    "nedb-promises": "^6.2.3"
   },
   "dependencies": {
     "@discordjs/rest": "^2.6.1",
