@@ -1,0 +1,4 @@
+{
+  "hello_response": "Привет, {user}! Добро пожаловать.",
+  "ping_response": "🏓 Понг! Задержка: {latency}мс"
+}
