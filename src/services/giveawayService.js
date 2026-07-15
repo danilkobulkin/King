@@ -137,41 +137,39 @@ export function createGiveawayEmbed(giveaway, status, winners = []) {
         const statusEmoji = status === 'ended' ? '🎉' : status === 'reroll' ? '🔄' : '🎉';
         const isEnded = status === 'ended' || status === 'reroll';
         const color = isEnded ? getColor('giveaway.ended') : getColor('giveaway.active');
-        
         const embed = new EmbedBuilder()
-            .setTitle(`${statusEmoji} ${giveaway.prize}`)
-            .setDescription('React with the button below to enter!')
+        channel.send({ embeds: [embed] });
             .setColor(color)
-            .addFields(
-                { name: '👤 Hosted by', value: `<@${giveaway.hostId}>`, inline: true },
-                { name: '🏆 Winners', value: giveaway.winnerCount.toString(), inline: true },
-                { name: '👥 Entries', value: giveaway.participants?.length?.toString() || '0', inline: true }
-            );
+            .setTitle(giveaway.prize || "🎁 Розыгрыш")
+            .setDescription(
+                `**🎯 Организатор:** <@${giveaway.hostId}>\n\n` +
+                `**🏆 Победителей:** ${giveaway.winnerCount}\n\n` +
+                `**👤 Участников:** ${giveaway.participants?.length || 0}\n\n` +
+                `**🕐 Длительность:** <t:${Math.floor((giveaway.endsAt || giveaway.endTime) / 1000)}:R>`
+            )
+            .setFooter({ text: `ID: ${giveaway.messageId} | создаётся...` })
+            .setTimestamp();
 
         if (isEnded) {
-            const winnerDisplay = winners.length > 0 
-                ? winners.map(id => `<@${id}>`).join(', ')
-                : 'No valid entries';
-            embed.addFields({ name: '🎯 Winners', value: winnerDisplay, inline: false });
-        } else {
-            const endTime = giveaway.endsAt || giveaway.endTime;
-            embed.addFields({ name: '⏰ Ends', value: `<t:${Math.floor(endTime / 1000)}:R>`, inline: false });
+            const winnerDisplay = winners.length > 0
+                ? winners.map(id => `🎉 <@${id}>`).join('\n')
+                : 'Нет участников!';
+            embed.addFields({
+                name: 'Победители',
+                value: winnerDisplay,
+                inline: false
+            });
         }
 
-        embed.setTimestamp();
-        
         return embed;
     } catch (error) {
-        logger.error('Error creating giveaway embed:', error);
-        throw new TitanBotError(
-            'Failed to create giveaway embed',
-            ErrorTypes.UNKNOWN,
-            'An internal error occurred while formatting the giveaway.',
-            { error: error.message }
-        );
+        logger.error('Ошибка создания embed для розыгрыша:', error);
+        return new EmbedBuilder()
+            .setColor(0xFF0000)
+            .setTitle('⚠️ Ошибка')
+            .setDescription('Не удалось создать embed розыгрыша');
     }
 }
-
 export function createGiveawayButtons(ended = false) {
     try {
         const row = new ActionRowBuilder();
@@ -180,12 +178,12 @@ export function createGiveawayButtons(ended = false) {
             row.addComponents(
                 new ButtonBuilder()
                     .setCustomId('giveaway_reroll')
-                    .setLabel('🎲 Reroll')
+                    .setLabel('🎲 Переиграть')
                     .setStyle(ButtonStyle.Secondary)
                     .setDisabled(false),
                 new ButtonBuilder()
                     .setCustomId('giveaway_view')
-                    .setLabel('👁️ View Winners')
+                    .setLabel('👁️ Посмотреть победителя')
                     .setStyle(ButtonStyle.Primary)
                     .setDisabled(false)
             );
@@ -193,12 +191,12 @@ export function createGiveawayButtons(ended = false) {
             row.addComponents(
                 new ButtonBuilder()
                     .setCustomId('giveaway_join')
-                    .setLabel('🎉 Join')
+                    .setLabel('🎉 Участвовать')
                     .setStyle(ButtonStyle.Primary)
                     .setDisabled(false),
                 new ButtonBuilder()
                     .setCustomId('giveaway_end')
-                    .setLabel('🛑 End')
+                    .setLabel('👤 Участники')
                     .setStyle(ButtonStyle.Danger)
                     .setDisabled(false)
             );
